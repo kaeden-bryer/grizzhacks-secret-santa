@@ -6,11 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:migrate": "tsx --env-file=.env.local scripts/migrate.ts",
+    "seed": "tsx --env-file=.env.local scripts/seed.ts",
+    "regenerate": "tsx --env-file=.env.local scripts/regenerate.ts",
+    "reset-pin": "tsx --env-file=.env.local scripts/reset-pin.ts",
+    "status": "tsx --env-file=.env.local scripts/status.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",
-    "bcryptjs": "^3.0.3",
+    "bcryptjs": "^2.4.3",
     "jose": "^6.2.15",
     "motion": "^14.9.1",
     "next": "16.4.5",
