@@ -11,7 +11,12 @@
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
     "regenerate": "tsx --env-file=.env.local scripts/regenerate.ts",
     "reset-pin": "tsx --env-file=.env.local scripts/reset-pin.ts",
-    "status": "tsx --env-file=.env.local scripts/status.ts"
+    "status": "tsx --env-file=.env.local scripts/status.ts",
+    "db:migrate:prod": "tsx --env-file=.env.production.local scripts/migrate.ts",
+    "seed:prod": "tsx --env-file=.env.production.local scripts/seed.ts",
+    "regenerate:prod": "tsx --env-file=.env.production.local scripts/regenerate.ts",
+    "reset-pin:prod": "tsx --env-file=.env.production.local scripts/reset-pin.ts",
+    "status:prod": "tsx --env-file=.env.production.local scripts/status.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

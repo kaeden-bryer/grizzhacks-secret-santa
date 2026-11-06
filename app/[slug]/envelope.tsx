@@ -12,15 +12,21 @@ export function Envelope({ name }: Props) {
   const [recipientName, setRecipientName] = useState<string | null>(null);
   const [phase, setPhase] = useState<"sealed" | "opening" | "revealed">("sealed");
   const [error, setError] = useState("");
+  const [flapBehind, setFlapBehind] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
   async function handleReveal() {
     if (phase !== "sealed") return;
 
     setPhase("opening");
+    // The flap takes 0.6s to open, so it passes vertical at about 0.3s.
+    // (Motion ignores `delay` on an instant zIndex change, so use a timer.)
+    const flapTimer = setTimeout(() => setFlapBehind(true), 300);
     const res = await fetch("/api/reveal", { method: "POST" });
 
     if (!res.ok) {
+      clearTimeout(flapTimer);
+      setFlapBehind(false);
       const data = await res.json();
       setError(data.error || "Failed to reveal");
       setPhase("sealed");
@@ -93,7 +99,7 @@ export function Envelope({ name }: Props) {
               {/* Letter that slides up during animation */}
               {phase === "opening" && !shouldReduceMotion && (
                 <motion.div
-                  className="absolute inset-x-4 bottom-4 top-4 rounded bg-white dark:bg-zinc-100"
+                  className="absolute inset-x-4 bottom-4 top-4 z-[1] rounded bg-white dark:bg-zinc-100"
                   initial={{ y: 0 }}
                   animate={{ y: -120, scale: 1.05 }}
                   transition={{ duration: 1.2, delay: 0.5, ease: "easeOut" }}
@@ -102,8 +108,18 @@ export function Envelope({ name }: Props) {
 
               {/* Flap */}
               <motion.div
-                className="absolute -top-[1px] left-0 right-0 origin-top"
-                style={{ transformStyle: "preserve-3d" }}
+                className="absolute -top-[1px] left-0 right-0"
+                style={{
+                  // On top of the letter (z-index 1) while closed; behind it
+                  // once past vertical so the letter slides up in front.
+                  zIndex: flapBehind ? 0 : 2,
+                  transformStyle: "preserve-3d",
+                  // `perspective` on an ancestor only applies to its direct
+                  // children, so put it in the flap's own transform.
+                  transformPerspective: 800,
+                  // Hinge along the top edge of the envelope.
+                  originY: 0,
+                }}
                 initial={{ rotateX: 0 }}
                 animate={
                   phase === "opening" && !shouldReduceMotion
@@ -126,7 +142,11 @@ export function Envelope({ name }: Props) {
                 <div
                   className="absolute inset-0 h-24 w-full sm:h-28"
                   style={{
-                    clipPath: "polygon(0 0, 50% 100%, 100% 0)",
+                    // This face is pre-flipped with rotateX(180deg) around its
+                    // own center, which turns it upside down. Draw the triangle
+                    // point-up so that flip cancels out, and when the flap opens
+                    // the back shows as a point-up triangle hinged on the top edge.
+                    clipPath: "polygon(0 100%, 50% 0, 100% 100%)",
                     background: "#991b1b",
                     backfaceVisibility: "hidden",
                     WebkitBackfaceVisibility: "hidden",
