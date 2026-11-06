@@ -22,7 +22,8 @@
 }
 
 body {
-  background: var(--background);
+  /* Night-sky fallback; the Scene paints over this. */
+  background: #06102a;
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }

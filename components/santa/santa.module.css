@@ -1,0 +1,291 @@
+/* ============================================================
+   GrizzHacks Secret Santa — cozy cabin theme
+   One CSS Module for every piece of the design. Class names are
+   hashed by Next.js, so nothing here can leak into other pages.
+   ============================================================ */
+
+/* ---------- Scene (fixed backdrop) ---------- */
+
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #0a1630;
+}
+
+.sceneSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Two hand-composed landscapes. Picked by aspect ratio, not width:
+   a tall window gets the phone composition, a wide one the desktop. */
+.desktop { display: none; }
+@media (min-aspect-ratio: 1/1) {
+  .phone { display: none; }
+  .desktop { display: block; }
+}
+
+/* Content layer that sits above the scene. */
+.stage {
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: clamp(40px, 8dvh, 88px) 20px 48px;
+  font-family: var(--font-garamond), "EB Garamond", Georgia, serif;
+  color: #f3e6c8;
+  text-align: center;
+}
+@media (min-aspect-ratio: 1/1) {
+  .stage { justify-content: center; padding-top: 48px; }
+}
+
+.column { display: flex; flex-direction: column; align-items: center; }
+
+/* ---------- Copy on the night sky ---------- */
+
+.kicker   { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: #e3cf9f; }
+.title    { margin: 14px 0 0; font-size: 34px; font-weight: 500; line-height: 1.15; color: #f6ecd6; }
+.subtitle { margin: 8px 0 0; font-size: 17px; font-style: italic; line-height: 1.4; color: #d9cdb3; }
+.caption  { margin: 30px 0 0; font-size: 18px; color: #f3e6c8; }
+.whisper  { margin: 0 0 16px; font-size: 16px; font-style: italic; color: #e3d6b8; }
+
+.skip {
+  margin-top: 20px;
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid rgba(243, 230, 200, 0.35);
+  border-radius: 999px;
+  background: rgba(6, 16, 42, 0.35);
+  color: #f3e6c8;
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+.skip:hover { border-color: rgba(243, 230, 200, 0.7); }
+.skip:focus-visible,
+.openButton:focus-visible { outline: 2px solid #ffd27a; outline-offset: 4px; }
+
+/* ---------- Scene animation ---------- */
+
+@keyframes twinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+@keyframes blink   { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+@keyframes flicker { 0%, 100% { opacity: 0.5; } 35% { opacity: 0.66; } 60% { opacity: 0.42; } 80% { opacity: 0.58; } }
+@keyframes bob     { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+.st1 { animation: twinkle 3.2s ease-in-out infinite; }
+.st2 { animation: twinkle 4.1s ease-in-out -1.3s infinite; }
+.st3 { animation: twinkle 2.7s ease-in-out -0.6s infinite; }
+.tw1 { animation: blink 2.2s ease-in-out infinite; }
+.tw2 { animation: blink 2.2s ease-in-out -0.7s infinite; }
+.tw3 { animation: blink 2.2s ease-in-out -1.5s infinite; }
+.flick { animation: flicker 3.6s ease-in-out infinite; }
+.bob { animation: bob 4s ease-in-out infinite; }
+
+/* Chimney smoke. Puffs are SVG circles, so CSS px here are the SVG's
+   own units and the plume scales with the scene. fill-box makes
+   scale() grow each puff around its own centre. */
+@keyframes rise {
+  0%   { transform: translate(0, 0) scale(0.4); opacity: 0; }
+  10%  { opacity: 0.7; }
+  35%  { transform: translate(6px, -70px) scale(1.1); }
+  65%  { transform: translate(-14px, -150px) scale(1.8); opacity: 0.35; }
+  100% { transform: translate(-48px, -240px) scale(2.8); opacity: 0; }
+}
+@keyframes riseLarge {
+  0%   { transform: translate(0, 0) scale(0.4); opacity: 0; }
+  10%  { opacity: 0.7; }
+  35%  { transform: translate(10px, -110px) scale(1.1); }
+  65%  { transform: translate(-24px, -240px) scale(1.9); opacity: 0.35; }
+  100% { transform: translate(-90px, -390px) scale(3); opacity: 0; }
+}
+.puff {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: rise 8s linear infinite;
+}
+.puffLarge { animation-name: riseLarge; animation-duration: 10s; }
+
+/* Reduced motion: freeze rather than hide. The negative delays mean a
+   frozen plume still shows puffs spread up the sky. */
+@media (prefers-reduced-motion: reduce) {
+  .st1, .st2, .st3, .tw1, .tw2, .tw3, .flick, .bob, .puff { animation-play-state: paused; }
+}
+
+/* ---------- Envelope ---------- */
+
+.envelopeShadow { margin-top: 44px; filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.45)); }
+
+.envelope {
+  position: relative;
+  width: min(330px, 84vw);
+  aspect-ratio: 620 / 430;
+  perspective: 1200px;
+}
+
+.layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
+
+/* Where a letter can peek out from (between the back and the pocket). */
+.slot { position: absolute; left: 6%; right: 6%; top: 6%; bottom: 8%; z-index: 1; }
+
+.flap { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: 50% 0%; }
+
+.face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden; /* iOS Safari ignores the unprefixed one */
+}
+.faceBack { transform: rotateY(180deg); }
+
+.sealOnFlap { position: absolute; left: 50%; top: 55.8%; width: 31%; height: auto; transform: translate(-50%, -50%); }
+
+.openButton {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* ---------- Letter (A4) ---------- */
+/* The letter is a size container, so every cqw below is a % of the
+   letter's own width. It scales as one piece from phone to desktop.
+   max() floors keep body text readable on small phones. */
+
+.letter {
+  position: relative;
+  box-sizing: border-box;
+  width: min(560px, calc(100vw - 40px), calc((100dvh - 120px) / 1.414));
+  aspect-ratio: 1 / 1.414;
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  background: #f5e8cb;
+  border-radius: 4px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 5px 12px rgba(0, 0, 0, 0.25);
+  color: #2b1d12;
+  font-family: var(--font-garamond), "EB Garamond", Georgia, serif;
+  text-align: center;
+}
+
+.texture { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: inherit; pointer-events: none; }
+.frameOuter { position: absolute; inset: 3.6cqw; border: max(1.5px, 0.36cqw) solid #b08a3e; pointer-events: none; }
+.frameInner { position: absolute; inset: 4.8cqw; border: max(0.75px, 0.18cqw) solid rgba(176, 138, 62, 0.55); pointer-events: none; }
+
+.letterBody {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10.7cqw 11.4cqw 10cqw;
+}
+
+.holly { width: 15cqw; height: auto; }
+.letterKicker { margin: 2.5cqw 0 0; font-size: max(11px, 2.3cqw); font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: #7a5a22; }
+.greeting { margin: 4.6cqw 0 0; font-size: max(16px, 4.65cqw); font-style: italic; color: #3a2a1c; }
+.name {
+  margin: 1cqw 0 0;
+  font-family: var(--font-script), "Pinyon Script", cursive;
+  font-weight: 400;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+  color: #2b1d12;
+}
+.divider { width: 46cqw; height: auto; margin-top: 1.4cqw; }
+.message { margin: 5cqw 0 0; max-width: 72cqw; font-size: max(15px, 3.6cqw); line-height: 1.55; color: #3a2a1c; }
+
+.details { margin: 6cqw 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: max(15px, 3.2cqw); }
+.detailLabel { margin-right: 0.5em; font-size: max(11px, 2.15cqw); font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: #7a5a22; }
+
+/* Wide letter: details become a row of columns. Flex with
+   space-evenly (not equal grid tracks) lets "Friday, December 11"
+   take the width it needs instead of breaking mid-date. */
+@container (min-width: 460px) {
+  .details {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-evenly;
+    gap: 16px;
+    padding: 2.9cqw 0;
+    border-block: 1px solid rgba(176, 138, 62, 0.5);
+    font-size: max(15px, 3cqw);
+  }
+  .detailItem { display: flex; flex-direction: column; gap: 4px; flex: 0 1 auto; min-width: 0; }
+  .detailLabel { margin-right: 0; }
+}
+
+/* Narrow letter: the seal tucks into the frame's corner, clear of the signature. */
+@container (max-width: 459px) {
+  /* `.letter .letterSeal` (not just `.letterSeal`) so this beats the
+     base rule further down the file: same specificity = last one wins. */
+  .letter .letterSeal { width: 10cqw; right: 4cqw; bottom: 4cqw; }
+}
+
+.signOff { margin: auto 0 0; padding-top: 4cqw; font-size: max(14px, 3.2cqw); font-style: italic; color: #3a2a1c; }
+.signature { margin: 0; font-family: var(--font-script), "Pinyon Script", cursive; font-size: max(24px, 6.4cqw); line-height: 1.2; }
+.letterSeal { position: absolute; right: 6cqw; bottom: 5.6cqw; width: 15cqw; height: auto; }
+
+/* ---------- Card flip (back of the letter -> front) ---------- */
+
+.flipStage { perspective: 1600px; }
+.flipper { display: grid; transform-style: preserve-3d; }
+.flipFace {
+  grid-area: 1 / 1;
+  align-self: stretch;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flipFront { transform: rotateY(180deg); }
+
+/* ---------- PIN forms (set / enter) ---------- */
+
+.form { display: flex; flex-direction: column; align-items: stretch; gap: 14px; width: min(320px, 100%); margin-top: 28px; }
+.label { font-size: 16px; color: #f3e6c8; text-align: left; }
+.pinInput {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 1px solid rgba(243, 230, 200, 0.5);
+  border-radius: 10px;
+  background: rgba(6, 16, 42, 0.55);
+  color: #f6ecd6;
+  font: inherit;
+  font-size: 28px;
+  letter-spacing: 0.4em;
+  text-align: center;
+}
+.pinInput::placeholder { color: rgba(243, 230, 200, 0.35); }
+.pinInput:focus-visible { outline: 2px solid #ffd27a; outline-offset: 2px; }
+.button {
+  min-height: 48px;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 10px;
+  background: #a3171c;
+  color: #f6ecd6;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.button:hover:not(:disabled) { background: #b81d23; }
+.button:disabled { opacity: 0.5; cursor: default; }
+.button:focus-visible { outline: 2px solid #ffd27a; outline-offset: 3px; }
+.error { margin: 14px 0 0; font-size: 16px; color: #ffd0c8; }
+.note { margin: 10px 0 0; font-size: 15px; font-style: italic; color: #d9cdb3; }

@@ -9,7 +9,10 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   turbopack: {
     rules: {
-      "*.css": {
+      // Only globals.css uses Tailwind. A "*.css" glob here would also match
+      // *.module.css, and `as: "*.css"` would turn CSS Modules into plain
+      // global CSS (class names come back undefined).
+      "globals.css": {
         loaders: ["@tailwindcss/turbopack"],
         as: "*.css",
       },
