@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { EVENT } from "@/lib/config";
+import { scriptFont } from "@/lib/fonts";
 
 type Props = {
   name: string;
@@ -56,15 +57,20 @@ export function Envelope({ name }: Props) {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-xl dark:bg-zinc-900">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        {/* The card stays gold in dark mode too, so the black text is always readable. */}
+        <div className="w-full max-w-sm rounded-2xl bg-[#F0C475] p-8 text-center text-black shadow-xl">
+          <p className="text-sm">
             {name}, you&apos;re buying a gift for...
           </p>
-          <p className="mt-4 text-4xl font-bold text-red-600 dark:text-red-400"
-             style={{ fontSize: recipientName.length > 10 ? "1.5rem" : undefined }}>
+          {/* No font-bold: Great Vibes only has one weight, so bold would be
+              a smeared "fake bold". Script fonts run small, so size up. */}
+          <p
+            className={`${scriptFont.className} mt-4 wrap-break-word text-6xl leading-tight`}
+            style={{ fontSize: recipientName.length > 12 ? "3rem" : undefined }}
+          >
             {recipientName}
           </p>
-          <div className="mt-6 space-y-1 text-sm text-zinc-500 dark:text-zinc-400">
+          <div className="mt-6 space-y-1 text-sm">
             <p>Budget: {EVENT.budget}</p>
             <p>{EVENT.exchangeDate} at {EVENT.exchangeTime}</p>
             <p>{EVENT.exchangeLocation}</p>
@@ -88,31 +94,43 @@ export function Envelope({ name }: Props) {
         >
           <div className="relative" style={{ perspective: "800px" }}>
             {/* Envelope body */}
-            <div className="relative h-48 w-72 rounded-b-lg bg-red-600 shadow-lg sm:h-56 sm:w-80">
-              {/* Envelope front */}
-              <div className="absolute inset-0 flex items-center justify-center">
+            {/* The body's own background is the inside back of the envelope
+                (darker), only visible through the pocket's V-shaped opening.
+                Stacking order, back to front:
+                  inside (body bg) → letter (z 1) → front pocket (z 3) → closed flap (z 4)
+                Once open, the flap drops to z 0, behind the letter. */}
+            <div className="relative h-48 w-72 rounded-b-lg bg-[#7f1d1d] shadow-lg sm:h-56 sm:w-80">
+              {/* Front pocket: covers the letter, with a V cut out of the top
+                  edge. The V (apex at 45% height) sits inside the closed flap's
+                  triangle (apex at 50%), so the flap hides it while sealed. */}
+              <div
+                className="absolute inset-0 z-3 flex items-center justify-center rounded-b-lg bg-red-600"
+                style={{
+                  clipPath: "polygon(0 0, 50% 45%, 100% 0, 100% 100%, 0 100%)",
+                }}
+              >
                 <div className="h-16 w-16 rounded-full bg-red-700/50 flex items-center justify-center">
-                  <span className="text-3xl"></span>
+                  <span className="text-3xl text-black"></span>
                 </div>
               </div>
 
               {/* Letter that slides up during animation */}
               {phase === "opening" && !shouldReduceMotion && (
                 <motion.div
-                  className="absolute inset-x-4 bottom-4 top-4 z-[1] rounded bg-white dark:bg-zinc-100"
+                  className="absolute inset-x-4 bottom-4 top-4 z-1 rounded bg-[#F0C475] dark:bg-zinc-100"
                   initial={{ y: 0 }}
-                  animate={{ y: -120, scale: 1.05 }}
+                  animate={{ y: -80, scale: 1.05 }}
                   transition={{ duration: 1.2, delay: 0.5, ease: "easeOut" }}
                 />
               )}
 
               {/* Flap */}
               <motion.div
-                className="absolute -top-[1px] left-0 right-0"
+                className="absolute -top-px left-0 right-0"
                 style={{
-                  // On top of the letter (z-index 1) while closed; behind it
-                  // once past vertical so the letter slides up in front.
-                  zIndex: flapBehind ? 0 : 2,
+                  // Above the pocket (z 3) while closed; behind the letter
+                  // (z 1) once past vertical, so the letter slides up in front.
+                  zIndex: flapBehind ? 0 : 4,
                   transformStyle: "preserve-3d",
                   // `perspective` on an ancestor only applies to its direct
                   // children, so put it in the flap's own transform.
@@ -159,10 +177,10 @@ export function Envelope({ name }: Props) {
         </div>
 
         {error && (
-          <p className="mt-4 text-center text-sm text-red-500">{error}</p>
+          <p className="mt-4 text-center text-sm text-white">{error}</p>
         )}
 
-        <p className="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-6 text-center text-sm text-white">
           {phase === "sealed"
             ? "Tap the envelope to reveal your match"
             : "Opening..."}
@@ -171,7 +189,7 @@ export function Envelope({ name }: Props) {
         {phase === "opening" && (
           <button
             onClick={handleSkip}
-            className="mt-2 block w-full text-center text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+            className="mt-2 block w-full text-center text-xs text-white underline-offset-2 hover:underline"
           >
             Skip animation
           </button>

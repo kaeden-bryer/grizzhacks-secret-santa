@@ -40,7 +40,7 @@ assignments  (giver_id PK → participants.id,
 ### URLs / slugs
 - Slug = lowercase name, e.g. `/kaeden`. No two participants share a name.
 - Every name must match `/^[a-z-]+$/` after lowercasing. The seed script fails loudly if one doesn't.
-- `/Kaeden` → redirect to `/kaeden`. An unknown slug → `notFound()`.
+- `/Kaeden` → redirect to `/kaeden`. An unknown slug, or any other unmatched URL → redirect to `/` (`redirect("/")` in `app/[slug]/page.tsx`, plus `app/not-found.tsx` for multi-segment paths).
 
 ### Assignment algorithm (`lib/assign.ts`)
 - Fisher–Yates shuffle, then a single cycle: `shuffled[i]` gives to `shuffled[(i + 1) % n]`.

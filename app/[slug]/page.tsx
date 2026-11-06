@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { sql } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { ParticipantClient } from "./client";
@@ -30,7 +30,9 @@ export default async function ParticipantPage({
     FROM participants WHERE slug = ${slug}
   `;
 
-  if (rows.length === 0) notFound();
+  // Unknown name: send them home instead of showing a 404. This also means
+  // a stranger can't tell a real name from a made-up one by the response.
+  if (rows.length === 0) redirect("/");
 
   const participant = rows[0];
   const session = await getSession();

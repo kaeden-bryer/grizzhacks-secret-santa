@@ -2,7 +2,9 @@
 
 :root {
   --background: #171194;
-  --foreground: #171717;
+  /* Text sitting directly on the background is white in both color schemes.
+     Anything on a light surface (cards, inputs) sets its own text color. */
+  --foreground: #ffffff;
 }
 
 @theme inline {
@@ -15,7 +17,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground: #ffffff;
   }
 }
 
