@@ -108,7 +108,7 @@ function RevealFlow({ name }: { name: string }) {
   const [recipient, setRecipient] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  const showLetter = stage === "rising" || stage === "ready";
+  const showLetter = stage === "rising" || stage === "ready" || stage === "revealed";
   const letter: LetterProps | null = recipient
     ? {
         giverName: name,
