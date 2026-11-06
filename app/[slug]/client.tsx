@@ -13,9 +13,9 @@ type Props = {
   isAuthenticated: boolean;
 };
 
-// sealed → opening (flap swings) → rising (card slides up) → card is in place.
+// sealed → opening (flap swings) → rising (card slides up) → ready → revealed (flip done).
 // The flip waits for BOTH "card in place" and "API answered".
-type Stage = "sealed" | "opening" | "rising" | "ready";
+type Stage = "sealed" | "opening" | "rising" | "ready" | "revealed";
 
 export function ParticipantClient({ name, slug, hasPin, isAuthenticated }: Props) {
   const [authed, setAuthed] = useState(isAuthenticated);
@@ -161,7 +161,14 @@ function RevealFlow({ name }: { name: string }) {
         >
           <p className={s.whisper}>Shh — this stays between us.</p>
           {/* Flip only when the card is in place AND the API has answered. Never without data. */}
-          <RevealCard letter={letter} flipped={stage === "ready" && letter !== null} />
+          <RevealCard
+            letter={letter}
+            flipped={(stage === "ready" || stage === "revealed") && letter !== null}
+            onFlipped={() => setStage("revealed")}
+          />
+          {stage === "revealed" && (
+            <p className={s.caption}>Tap the card to hide</p>
+          )}
           {error && (
             <p className={s.error} role="alert">
               {error}

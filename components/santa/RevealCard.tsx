@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import styles from "./santa.module.css";
 import { Letter, LetterBack, type LetterProps } from "./Letter";
@@ -19,31 +20,59 @@ interface RevealCardProps {
  * starts already turned 180° away. Turning the parent 180° then hides
  * the back face and shows the front.
  *
+ * After the initial reveal, clicking the card toggles it: it flips back
+ * and shrinks (to hide from people nearby), then flips and grows on the
+ * next click.
+ *
  * Security: the front face, and the recipient's name with it, isn't in
  * the DOM at all until `letter` is set from the API.
  */
 export function RevealCard({ letter, flipped, onFlipped }: RevealCardProps) {
   const reduce = useReducedMotion();
+  const [revealed, setRevealed] = useState(false);
+  const [hidden, setHidden] = useState(false);
+
+  const handleInitialFlipDone = useCallback(() => {
+    setRevealed(true);
+    onFlipped?.();
+  }, [onFlipped]);
+
+  const toggleHide = useCallback(() => {
+    if (revealed) setHidden((h) => !h);
+  }, [revealed]);
 
   if (reduce) {
-    return letter && flipped ? (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }} onAnimationComplete={onFlipped}>
-        <Letter {...letter} />
+    const showing = flipped && letter && !hidden;
+    return (
+      <motion.div
+        animate={{ opacity: showing ? 1 : 0, scale: showing ? 1 : 0.55 }}
+        transition={{ duration: 0.4 }}
+        onAnimationComplete={() => {
+          if (flipped && letter && !revealed) handleInitialFlipDone();
+        }}
+        onClick={toggleHide}
+        style={{ cursor: revealed ? "pointer" : undefined }}
+      >
+        {showing ? <Letter {...letter!} /> : <LetterBack />}
       </motion.div>
-    ) : (
-      <LetterBack />
     );
   }
 
+  // After the initial reveal, clicking hides (flips back + shrinks) or shows again.
+  const showFront = flipped && letter && !hidden;
+
   return (
-    <div className={styles.flipStage}>
+    <div className={styles.flipStage} onClick={toggleHide} style={{ cursor: revealed ? "pointer" : undefined }}>
       <motion.div
         className={styles.flipper}
         initial={false}
-        animate={{ rotateY: flipped && letter ? 180 : 0 }}
+        animate={{
+          rotateY: showFront ? 180 : 0,
+          scale: hidden ? 0.55 : 1,
+        }}
         transition={{ duration: 1.1, ease: [0.65, 0, 0.35, 1] }}
         onAnimationComplete={() => {
-          if (flipped && letter) onFlipped?.();
+          if (showFront && !revealed) handleInitialFlipDone();
         }}
       >
         <LetterBack className={styles.flipFace} />
